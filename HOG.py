@@ -1,6 +1,32 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from math import floor
+import cv2
+
+
+def visualize_angles_as_arrows(angles, cell_size=8, scale=1):
+    # Create a blank canvas
+    height, width = angles.shape
+    canvas = np.zeros((height, width, 3), dtype=np.uint8)
+
+    # Iterate over each cell
+    for i in range(0, height, cell_size):
+        for j in range(0, width, cell_size):
+            # Average angle for the cell
+            angle = np.mean(angles[i:i + cell_size, j:j + cell_size])
+
+            # Calculate the arrow direction
+            dx = scale * cell_size * np.cos(np.radians(angle))
+            dy = scale * cell_size * np.sin(np.radians(angle))
+
+            # Determine the start and end point of the arrow
+            start_point = (int(j + cell_size / 2), int(i + cell_size / 2))
+            end_point = (int(j + cell_size / 2 + dx), int(i + cell_size / 2 - dy))
+
+            # Draw the arrow on the canvas
+            canvas = cv2.arrowedLine(canvas, start_point, end_point, (255, 255, 255), 1, tipLength=0.3)
+
+    return canvas
 
 
 def HOG(raw_image, w=30, h=30, nb_bins=9, plot=False):
@@ -62,10 +88,10 @@ def HOG(raw_image, w=30, h=30, nb_bins=9, plot=False):
     # --Plot--
     # Only executed if plot=True. Plots gradient magnitude, grid and HOG
     if plot:
-        # --Gradient classification--
-        Gc = np.where(teta <= 180, 1, 0)
+        # # --Gradient classification--
+        # Gc = np.where(teta <= 180, 1, 0)
 
-        # --Ploting image--
+        # --Plotting image--
         fig1 = plt.figure()
         ax2 = fig1.add_subplot(221)
         ax3 = fig1.add_subplot(222)
@@ -75,7 +101,7 @@ def HOG(raw_image, w=30, h=30, nb_bins=9, plot=False):
         ax2.imshow(Ix, cmap="gray")
         ax3.imshow(Iy, cmap="gray")
         ax4.imshow(G, cmap="gray")
-        ax5.imshow(Gc)
+        ax5.imshow(visualize_angles_as_arrows(teta))
 
         ax2.set_title('Gradient according to x')
         ax3.set_title('Gradient according to y')
